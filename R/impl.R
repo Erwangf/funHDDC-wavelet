@@ -100,6 +100,11 @@ toWavelet <- function(x,wavelet.family,wavelet.filter.number){
 }
 
 kCost <- function(x,mu,a,b,d,Pi,QtQ,A){
+  if(sum(a<=0)>0){
+    # print("A<0")
+    # a[a<=0]=0.0000001
+  }
+
   P = length(x)
 
   Px <- QtQ %*% ( x - mu ) + mu
@@ -111,7 +116,7 @@ kCost <- function(x,mu,a,b,d,Pi,QtQ,A){
 
 kCostWithoutB <- function(x,mu,a,Pi,QtQ,A){
   if(sum(a<=0)>0){
-    print("HELLO")
+    print("A<0")
   }
   P = length(x)
   Px <- QtQ %*% ( x - mu ) + mu
@@ -419,7 +424,7 @@ plot.mean.curve.dataset <- function(X,col=rep(1,nrow(X))){
 #' }
 #'
 #' @export funHDDCwavelet
-funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))+1,dimTest="scree",
+funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))+2,dimTest="scree",
                                    wavelet.family="DaubExPhase", wavelet.filter.number=4, init="kmeans",
                                    minPerClass=10,threshold=0.01,minIter=5,maxIter=10, poolSize=5,
                                    verbose=FALSE, viz=F){
@@ -436,7 +441,9 @@ funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))
         result$K <- K_current
         result$maxD <- maxD_current
         modelCounter <- modelCounter + 1
-        if(is.null(bestModel$BIC) || result$BIC < bestModel$BIC){
+        if(is.null(bestModel$BIC)){
+          bestModel <- result
+        } else if(result$BIC < bestModel$BIC){
           bestModel <- result
         }
       }
@@ -457,11 +464,12 @@ funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))
 
 
 
-internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))+1,dimTest="scree",
+internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X))),dimTest="scree",
                           wavelet.family="DaubExPhase", wavelet.filter.number=4, init="kmeans",
                           minPerClass=10,threshold=0.01,minIter=5,maxIter=10,
                           verbose=FALSE, viz=FALSE
                  ){
+  require(wavethresh)
 
   X = as.matrix(X)
 
@@ -471,7 +479,10 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
   sigma = list()
 
 
-
+  # transform : raw ==> wavelets
+  X = t(apply(X,1,function(line){
+    return(toWavelet(line,wavelet.family,wavelet.filter.number))
+  }))
 
 
   P = ncol(X)
@@ -546,11 +557,12 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
 
         reduction = d<maxCol
         if(reduction){
+
           Ql[,(d+1) : maxCol] <- 0
           b = mean(lambda[(d+1) : maxCol])
           if(b == 0){
 
-            b = 0.000001
+            b = 0.1 * a
           }
           if(b<0){
             b=abs(b)
@@ -647,8 +659,12 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
     oldLL <- ll
 
     # log likelihood
-    ll <- computeLogLikelihood(Q_all = sigma$Qd,A_all = sigma$Ad,
-                               Pi = sigma$Pi,n = nrow(X),W_full = W,D = sigma$D
+    ll <- computeLogLikelihood(Q_all = sigma$Qd,
+                               A_all = sigma$Ad,
+                               Pi = sigma$Pi,
+                               n = nrow(X),
+                               W_full = W,
+                               D = sigma$D
     )
 
     nbParam = 0
@@ -668,11 +684,13 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
     }
 
     bic <- -2 * ll + nbParam * log(nrow(X))
+    print(ll)
     if(is.nan(bic)){
       print("prout")
     }
 
     if(verbose){
+      print(paste("Step : ",iter))
       print("Pi :")
       print(sigma$Pi)
       print("D :")
@@ -688,11 +706,12 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
       title(paste("Iteration :",iter))
       barplot(sigma$Pi,col=1:K)
       title("cluster repartition")
+      par(mfrow=c(1,1))
     }
     if(!is.null(oldLL)){
 
       diffLL <- ll - oldLL
-      if(diffLL<0 && abs(diffLL)<threshold && iter>=minIter){
+      if((diffLL<0 || abs(diffLL)<threshold )&& iter>=minIter){
 
         sigma$tm = tm
         sigma$BIC = bic
