@@ -88,7 +88,7 @@ Pr = function(x,A){
   return(t(x) %*% A %*% x)
 }
 
-toWavelet <- function(x,wavelet.family,wavelet.filter.number){
+toWavelet <- function(x,wavelet.family,wavelet.filter.number,max.level=round(log2(length(x)))){
   size = length(x)
   if(round(log2(size)) != log2(size)){
     size = 2^round(log2(size))
@@ -96,7 +96,7 @@ toWavelet <- function(x,wavelet.family,wavelet.filter.number){
   }
 
   xw = wd(x,family = wavelet.family,filter.number = wavelet.filter.number)
-  return(c(xw$C[1],xw$D))
+  return(c(xw$C[1],xw$D[1:(2^max.level - 1)]))
 }
 
 kCost <- function(x,mu,a,b,d,Pi,QtQ,A){
@@ -424,9 +424,9 @@ plot.mean.curve.dataset <- function(X,col=rep(1,nrow(X))){
 #' }
 #'
 #' @export funHDDCwavelet
-funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))+2,dimTest="scree",
+funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X))),dimTest="scree",
                                    wavelet.family="DaubExPhase", wavelet.filter.number=4, init="kmeans",
-                                   minPerClass=10,threshold=0.01,minIter=5,maxIter=10, poolSize=5,
+                                   minPerClass=10,threshold=0.01,minIter=10,maxIter=50, poolSize=5,
                                    verbose=FALSE, viz=F){
 
   modelCounter = 0
@@ -434,17 +434,23 @@ funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))
   for(tryNumber in 1:poolSize){
     for(K_current in as.vector(K)){
       for(maxD_current in as.vector(maxD)){
-        result = internal.funHDDCwavelet(X,K=K_current,minD = minD, maxD = maxD_current, dimTest=dimTest,
-                                                wavelet.family = wavelet.family,wavelet.filter.number=wavelet.filter.number,
-                                                init=init,minPerClass = minPerClass,threshold=threshold,minIter=minIter,
-                                                maxIter=maxIter, verbose=verbose,viz=viz)
-        result$K <- K_current
-        result$maxD <- maxD_current
-        modelCounter <- modelCounter + 1
-        if(is.null(bestModel$BIC)){
-          bestModel <- result
-        } else if(result$BIC < bestModel$BIC){
-          bestModel <- result
+        for(wavelet.filter.number_current in as.vector(wavelet.filter.number)){
+
+
+          result = internal.funHDDCwavelet(X,K=K_current,minD = minD, maxD = maxD_current, dimTest=dimTest,max.level = max.level,
+                                                  wavelet.family = wavelet.family,wavelet.filter.number=wavelet.filter.number_current,
+                                                  init=init,minPerClass = minPerClass,threshold=threshold,minIter=minIter,
+                                                  maxIter=maxIter, verbose=verbose,viz=viz)
+          result$K <- K_current
+          result$maxD <- maxD_current
+          result$wavelet.filter.number <- wavelet.filter.number_current
+          modelCounter <- modelCounter + 1
+          print(result$BIC)
+          if(is.null(bestModel$BIC)){
+            bestModel <- result
+          } else if(result$BIC < bestModel$BIC){
+            bestModel <- result
+          }
         }
       }
     }
@@ -455,6 +461,7 @@ funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(ncol(X)))
   cat(paste("K =",bestModel$K,"\n"))
   cat(paste("maxD =",bestModel$maxD,"\n"))
   cat(paste("BIC =",bestModel$BIC,"\n"))
+  cat(paste("Filter =",bestModel$wavelet.filter.number,"\n"))
   cat(paste("Models tested :",modelCounter,"\n"))
   cat("----------------------\n")
 
@@ -473,21 +480,35 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
 
   X = as.matrix(X)
 
+  # clusters initialisation
+  if(init=="kmeans"){
+    initialClusters = kmeans(X,K)$cluster
+  }
+  else{
+    initialClusters = sample(1:K,nrow(X),replace = TRUE)
+  }
+
+
   # log likelihood
   ll <- NULL
 
   sigma = list()
 
+  realMaxLevel = min(max.level,round(log2(ncol(X))))
 
   # transform : raw ==> wavelets
   X = t(apply(X,1,function(line){
-    return(toWavelet(line,wavelet.family,wavelet.filter.number))
+    return(toWavelet(line,wavelet.family,wavelet.filter.number,max.level=realMaxLevel))
   }))
+
+
 
 
   P = ncol(X)
   N = nrow(X)
-  lvls = 1:(min(max.level,log2(P)) + 1)
+  print(P)
+  lvls = 1:(realMaxLevel + 1)
+
 
 
   tm = matrix(0,ncol=K,nrow=N)
@@ -507,13 +528,7 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
     sigma$D[,l] <-  rep(min(maxD,maxSize),K)
   }
 
-  # clusters initialisation
-  if(init=="kmeans"){
-    initialClusters = kmeans(X,K)$cluster
-  }
-  else{
-    initialClusters = sample(1:K,nrow(X),replace = TRUE)
-  }
+
 
   # check if some classes are near empty
   initialClusters <- getBalancedCluster(initialClusters,K,minPerClass)
@@ -560,9 +575,9 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
 
           Ql[,(d+1) : maxCol] <- 0
           b = mean(lambda[(d+1) : maxCol])
-          if(b == 0){
+          if(b <= 0){
 
-            b = 0.1 * a
+            b = 0.000001
           }
           if(b<0){
             b=abs(b)
@@ -684,7 +699,7 @@ internal.funHDDCwavelet = function(X, K, minD=1, maxD=1, max.level = round(log2(
     }
 
     bic <- -2 * ll + nbParam * log(nrow(X))
-    print(ll)
+
     if(is.nan(bic)){
       print("prout")
     }

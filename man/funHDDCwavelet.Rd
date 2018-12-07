@@ -8,7 +8,7 @@
 \title{funHDDCwavelet : time series clustering using wavelet and gaussian mixture models}
 \usage{
 funHDDCwavelet(X, K, minD = 1, maxD = 1, max.level = round(log2(ncol(X)))
-  + 1, dimTest = "scree", wavelet.family = "DaubExPhase",
+  + 2, dimTest = "scree", wavelet.family = "DaubExPhase",
   wavelet.filter.number = 4, init = "kmeans", minPerClass = 10,
   threshold = 0.01, minIter = 5, maxIter = 10, poolSize = 5,
   verbose = FALSE, viz = F)
