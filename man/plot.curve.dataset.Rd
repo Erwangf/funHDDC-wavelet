@@ -11,11 +11,14 @@
 
 \item{col}{the class vector of the data (must be numbers)}
 
-\item{ratio}{the ratio of curves plotted (1 : all curves plotted, 0.25 : 25\% of the curves plotted)}
+\item{ratio}{the ratio of curves plotted (1 : all curves plotted, 0.25 :
+25\% of the curves plotted)}
 }
 \description{
-Plot the curves of the dataset \emph{X}, according to the curve's class, provided by the \emph{col} parameter
-With the \emph{ratio} parameter, you can reduce the number of plotted curves (ex : ratio = 0.1 plot only 10% of the curves).
+Plot the curves of the dataset \emph{X}, according to the curve's class,
+provided by the \emph{col} parameter. With the \emph{ratio} parameter, you
+can reduce the number of plotted curves (ex : ratio = 0.1 plot only 10% of
+the curves).
 }
 \examples{
 \dontrun{
