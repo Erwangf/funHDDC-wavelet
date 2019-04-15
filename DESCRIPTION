@@ -2,7 +2,14 @@ Package: funHDDCwavelet
 Type: Package
 Title: Time series clustering with wavelet and gaussian mixture model
 Version: 0.1.0
-Author: Erwan GIRY-FOUQUET, Julien JACQUES, Jairo CUGLIARI, Charles BOUVEYRON
+Authors@R: c(
+    person("Erwan", "Giry-Fouquet", email = "a@a.com", role = "cre"),
+    person("Jairo", "Cugliari", email = "jairo.cuglari@univ-lyon2.fr", 
+           role = "aut", comment = c(ORCID = "0000-0001-6779-0084")
+           ),
+    person("Charles", "Bouveyron", email = "charles.bouveyron@unice.fr", role = "aut"),
+    person("Julien", "Jacques", email = "winston@rstudio.com", role = "aut")
+    )
 Maintainer: Erwan GIRY-FOUQUET <erwan.giry.fouquet@gmail.com>
 Description: Perform time series clustering, via discrete wavelet transform, and modeling
     wavelet coefficients with a parcimonious gaussian mixture model. Parameter estimation is done
@@ -12,7 +19,8 @@ Imports:
     graphics,
     stats
 NeedsCompilation: yes
-License: MIT
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
