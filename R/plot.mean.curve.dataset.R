@@ -7,10 +7,10 @@
 #'
 #' @export plot.mean.curve.dataset
 plot.mean.curve.dataset <- function(X,col=rep(1,nrow(X))){
-  classes = as.numeric(names(table(clusters)))
+  classes = as.numeric(names(table(col)))
   ylim = c(min(X),max(X))
   for(g in classes){
-    dataToPlot = X[which(clusters==g),]
+    dataToPlot = X[which(col==g),]
     plot(colMeans(dataToPlot),col=g,type="l",lwd=3,ylim=ylim)
     title(paste("Class ",g))
     for(i in sample(1:nrow(dataToPlot), 10,replace=TRUE)){

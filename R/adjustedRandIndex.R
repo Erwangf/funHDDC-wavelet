@@ -20,7 +20,7 @@ adjustedRandIndex <- function(x,y){
   }
 
   tab <- table(x, y)
-  if (all(dim(tab) == c(1, 1))){
+  if (all(dim(tab) == c(1, 1))) {
     return(1)
   }
 
@@ -30,5 +30,4 @@ adjustedRandIndex <- function(x,y){
   d <- choose(sum(tab), 2) - a - b - c
   ARI <- (a - (a + b) * (a + c)/(a + b + c + d))/((a + b + a + c)/2 - (a + b) * (a + c)/(a + b + c + d))
   return(ARI)
-
 }

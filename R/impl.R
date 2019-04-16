@@ -1,7 +1,8 @@
 #' funHDDCwavelet : time series clustering using wavelet and gaussian mixture models
 #'
-#' This package provide an implementation of the funHDDCwavelet algorithm. This algorithm allow the clustering of time series
-#' by representing them in a parcimonious and multi-resolution way.
+#' This package provide an implementation of the funHDDCwavelet algorithm.
+#' This algorithm allow the clustering of time series by representing them in a
+#' parcimonious and multi-resolution way.
 #'
 #' @docType package
 #' @name funHDDCwavelet
@@ -30,7 +31,6 @@ weightedCovariance <- function(D,ratio,mu){
   )
 }
 
-
 getBeginEnd <- function(l){
   # level 1 = c0 => 1:1
   if (l == 1) {
@@ -44,7 +44,6 @@ getBeginEnd <- function(l){
   }
   return(list(begin = begin, end = end))
 }
-
 
 decomposeByBlock <- function(Q){
   Qd = list()
@@ -91,10 +90,10 @@ toWavelet <- function(x,wavelet.family,wavelet.filter.number,max.level=round(log
   size = length(x)
   if (round(log2(size)) != log2(size)) {
     size = 2^round(log2(size))
-    x = spline(x, n = size)$y
+    x = spline(x,n = size)$y
   }
 
-  xw = wavethresh::wd(x,family = wavelet.family,filter.number = wavelet.filter.number)
+  xw = wd(x,family = wavelet.family,filter.number = wavelet.filter.number)
   return(c(xw$C[1],xw$D[1:(2^max.level - 1)]))
 }
 
@@ -106,7 +105,7 @@ kCost <- function(x,mu,a,b,d,Pi,QtQ,A){
 
   P = length(x)
 
-  Px <- QtQ %*% (x - mu) + mu
+  Px <- QtQ %*% (x - mu ) + mu
 
   K = Pr(mu - Px,A) +  sum((x - Px)^2)/b + sum(log(a[1:d])) + (P - d) * log(b) - 2 * log(Pi)
 
@@ -127,7 +126,7 @@ computeW <- function(X,tm,K,mu,Nis){
   W <- list()
 #  N <- nrow(X)
   for (g in 1:K) {
-    W[[g]] <- weightedCovariance(X, tm[, g], mu[g,])
+    W[[g]] <- weightedCovariance(X,tm[,g],mu[g,])
   }
   return(W)
 }
@@ -147,14 +146,14 @@ computeLogLikelihood <- function(Q_all,A_all,Pi,n,W_full,D){
 
     # for each level in the cluster :
     for (lvl in 1:maxLevel) {
-      #sumA <- 0
+ #     sumA <- 0
       Q <- Qi[[lvl]] # Matrix (eigenvectors)
       W <- Wi[[lvl]] # Matrix (empirical covariance)
       a <- Ai[[lvl]] # Vector (eigenvalues)
 
 
       # for the first d_{i,lvl} columns of the level
-      for (l in 1:D[i, lvl]) {
+      for (l in 1:D[i,lvl]) {
         ll_i <- ll_i + log(a[l]) + (t(Q[,l]) %*% W %*% Q[,l]) / a[l]
       }
       # for the other columns of the level
@@ -170,41 +169,49 @@ computeLogLikelihood <- function(Q_all,A_all,Pi,n,W_full,D){
   return(-ll / 2)
 }
 
-getIntrinsecDim <- function(lambda,n,test="scree"){
+getIntrinsecDim <- function(lambda,n,test="scree", value = 0.1){
   lambda <- lambda[lambda >= 0]
   if (length(lambda) == 1) {
     return(1)
 
-  } else if (substr(test, nchar(test), nchar(test)) == "%") {
-    # format : 80%, 78.2%, 85.52555%
-    maxPercentage = as.numeric(substr(test, 1, nchar(test) - 1)) / 100
-    total = 0
-    d = 0
-    while (total < maxPercentage) {
-      d <- d + 1
-      total <- total + lambda[d]/sum(lambda)
-    }
-    return(d)
-
-  } else if (test == "mean") {
+  }  else if (test == "mean") {
     meanLambda = mean(lambda)
     return(length(lambda[lambda > meanLambda]))
 
-  } else if (test == "scree") {
+  } else if (test == "screeBIS") {
     # Scree Test de Cattel
     scree_mat <- matrix(0, ncol = length(lambda), nrow = length(lambda))
     scree_mat[,1] <- lambda
     for (i in 2:length(lambda)) {
       for (j in 2:i) {
-        scree_mat[i,j] <- scree_mat[i - 1, j - 1] - scree_mat[i, j - 1]
-        if (scree_mat[i, j] < 0) {
+        scree_mat[i,j] <- scree_mat[i - 1, j - 1] - scree_mat[i,j - 1]
+        if (scree_mat[i,j] < 0) {
           return(i - 1)
         }
       }
     }
     return(length(lambda))
 
-  } else if (test == "kss") {
+  } else if (test == "scree") {
+    lambda <-  (lambda - min(lambda) )/(max(lambda) - min(lambda))
+    dimMax = length(lambda)
+    i <- 1
+    found = FALSE
+
+    while (i < dimMax && found == FALSE) {
+
+      if ((lambda[i] - lambda[i + 1]) <= value) {
+        found <- TRUE
+      }
+      else {
+        i <- i + 1
+      }
+    }
+
+    return(i)
+  }
+
+  else if (test == "kss") {
 
     lambda <- lambda / mean(lambda)
 
@@ -257,5 +264,4 @@ getBalancedCluster <- function(clusters,K,minPerClass){
   }
   return(result)
 }
-
 
