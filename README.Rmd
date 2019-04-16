@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-# funHDDCwavelet -- Functional High Dimension for Discrimination and Clustering
+# Functional Model-Based Discrimination and Clustering using wavelets
 
 <!-- badges: start -->
 [![Travis build status](https://travis-ci.org/Erwangf/funHDDC-wavelet.svg?branch=master)](https://travis-ci.org/Erwangf/funHDDC-wavelet)
@@ -20,8 +20,10 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 
-Perform time series clustering, via discrete wavelet transform, and modeling
-wavelet coefficients with a parcimonious gaussian mixture model. Parameter estimation is done with an EM algorithm.
+The R package `funHDDCwavelet` allows to perform time series clustering, via 
+discrete wavelet transform, and modeling wavelet coefficients with a 
+parcimonious gaussian mixture model. Parameter estimation is done with an EM 
+algorithm.
 
 ## Installation
 

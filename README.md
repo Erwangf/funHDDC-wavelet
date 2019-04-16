@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# funHDDCwavelet – Functional High Dimension for Discrimination and Clustering
+# Functional Model-Based Discrimination and Clustering using wavelets
 
 <!-- badges: start -->
 
@@ -11,9 +11,10 @@ status](https://travis-ci.org/Erwangf/funHDDC-wavelet.svg?branch=master)](https:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
-Perform time series clustering, via discrete wavelet transform, and
-modeling wavelet coefficients with a parcimonious gaussian mixture
-model. Parameter estimation is done with an EM algorithm.
+The R package `funHDDCwavelet` allows to perform time series clustering,
+via discrete wavelet transform, and modeling wavelet coefficients with a
+parcimonious gaussian mixture model. Parameter estimation is done with
+an EM algorithm.
 
 ## Installation
 
