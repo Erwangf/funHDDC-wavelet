@@ -51,6 +51,7 @@ library(funHDDCwavelet)
 What is special about using `README.Rmd` instead of just `README.md`?
 You can include R chunks like so:
 
+
 ``` r
 summary(cars)
 #>      speed           dist       
