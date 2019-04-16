@@ -13,9 +13,9 @@ Authors@R: c(
     person("Julien", "Jacques", email = "winston@rstudio.com", role = "aut")
     )
 Maintainer: Erwan GIRY-FOUQUET <erwan.giry.fouquet@gmail.com>
-Description: Perform time series clustering, via discrete wavelet transform, and modeling
-    wavelet coefficients with a parcimonious gaussian mixture model. Parameter estimation is done
-    with an EM algorithm.
+Description: Perform time series clustering, via discrete wavelet transform, 
+    and modeling wavelet coefficients with a parcimonious gaussian mixture 
+    model. Parameter estimation is done with an EM algorithm.
 Imports:
     wavethresh,
     graphics,
