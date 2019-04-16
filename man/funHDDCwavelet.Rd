@@ -57,7 +57,8 @@ X = dataset$X
 real_cluster = dataset$col
 
 # Haar wavelet
-result = funHDDCwavelet(X,K=3,minD=1,maxD=1,wavelet.family="DaubExPhase",wavelet.filter.number=1,viz=TRUE,minIter=10)
+result = funHDDCwavelet(X,K=3,minD=1,maxD=1,wavelet.family="DaubExPhase",
+                        wavelet.filter.number=1,viz=TRUE,minIter=10)
 clusters = apply(result$tm,1,which.max)
 adjustedRandIndex(clusters,real_cluster)
 plot.curve.dataset(X,col=clusters,ratio=0.1)
